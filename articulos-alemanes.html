@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Der Die Das — Fichas de vocabulario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#efe9dc;
+    --paper-dark:#e4ddcb;
+    --ink:#2b2926;
+    --ink-soft:#726b5e;
+    --line:#c9c0ab;
+    --margin-red:#a83b32;
+    --der:#1f4e8c;
+    --der-soft:#e3ebf5;
+    --die:#a8324a;
+    --die-soft:#f5e3e7;
+    --das:#a9791f;
+    --das-soft:#f5edda;
+    --ok:#2f6b3f;
+    --ok-soft:#dfeee1;
+    --bad:#a8324a;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% 10%, #f4efe3 0%, var(--paper) 45%),
+      var(--paper);
+    font-family:'Space Grotesk', sans-serif;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px 14px;
+  }
+
+  .app{
+    width:100%;
+    max-width:460px;
+  }
+
+  .masthead{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:14px;
+    padding:0 4px;
+  }
+  .masthead h1{
+    font-size:15px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    font-weight:700;
+    margin:0;
+    color:var(--ink);
+  }
+  .masthead .sub{
+    font-size:11px;
+    letter-spacing:.08em;
+    color:var(--ink-soft);
+  }
+
+  /* ---- Index card ---- */
+  .card{
+    position:relative;
+    background:
+      repeating-linear-gradient(
+        var(--paper) 0px,
+        var(--paper) 37px,
+        var(--line) 38px,
+        var(--paper) 39px
+      );
+    background-color:var(--paper);
+    border-radius:6px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.5) inset,
+      0 18px 40px -18px rgba(43,41,38,.45),
+      0 2px 0 rgba(43,41,38,.08);
+    padding:26px 22px 22px 40px;
+    overflow:hidden;
+    min-height:430px;
+    display:flex;
+    flex-direction:column;
+  }
+  .card::before{ /* red margin rule */
+    content:"";
+    position:absolute;
+    left:26px;
+    top:0;
+    bottom:0;
+    width:2px;
+    background:var(--margin-red);
+    opacity:.55;
+  }
+  .card::after{ /* punch holes */
+    content:"";
+    position:absolute;
+    left:9px;
+    top:0;
+    bottom:0;
+    width:8px;
+    background-image:
+      radial-gradient(circle, var(--paper-dark) 3.5px, transparent 3.6px);
+    background-size:8px 76px;
+    background-repeat:repeat-y;
+    background-position:0 20px;
+    box-shadow: inset 0 0 0 1px rgba(43,41,38,.06);
+  }
+
+  .card-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:11px;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+  .card-top b{ color:var(--ink); }
+
+  .progress-track{
+    height:4px;
+    background:rgba(43,41,38,.12);
+    border-radius:2px;
+    margin-bottom:20px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--margin-red);
+    width:0%;
+    transition:width .4s ease;
+  }
+
+  .word-zone{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:6px 0 14px;
+  }
+  .blank-line{
+    width:96px;
+    height:2px;
+    background:var(--ink);
+    opacity:.35;
+    margin-bottom:14px;
+  }
+  .word{
+    font-family:'Courier Prime', monospace;
+    font-weight:700;
+    font-size:clamp(30px, 8vw, 40px);
+    letter-spacing:.01em;
+    color:var(--ink);
+    word-break:break-word;
+  }
+  .peek-btn{
+    margin-top:16px;
+    background:none;
+    border:1px dashed var(--ink-soft);
+    color:var(--ink-soft);
+    font-family:inherit;
+    font-size:12px;
+    letter-spacing:.04em;
+    padding:6px 12px;
+    border-radius:20px;
+    cursor:pointer;
+  }
+  .peek-btn:hover{ color:var(--ink); border-color:var(--ink); }
+
+  .translation{
+    min-height:20px;
+    font-size:15px;
+    color:var(--ink-soft);
+    margin-top:10px;
+    font-style:italic;
+  }
+  .translation b{ color:var(--ink); font-style:normal; }
+
+  .options{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-top:auto;
+  }
+  .opt{
+    font-family:'Courier Prime', monospace;
+    font-weight:700;
+    font-size:17px;
+    letter-spacing:.03em;
+    text-transform:lowercase;
+    padding:14px 0;
+    border-radius:8px;
+    border:2px solid transparent;
+    cursor:pointer;
+    transition:transform .08s ease, box-shadow .15s ease;
+  }
+  .opt:active{ transform:scale(.96); }
+  .opt.der{ background:var(--der-soft); color:var(--der); border-color:var(--der); }
+  .opt.die{ background:var(--die-soft); color:var(--die); border-color:var(--die); }
+  .opt.das{ background:var(--das-soft); color:var(--das); border-color:var(--das); }
+  .opt.correct{ background:var(--ok-soft); color:var(--ok); border-color:var(--ok); box-shadow:0 0 0 3px rgba(47,107,63,.15); }
+  .opt.wrong{ background:#f6e2e2; color:var(--bad); border-color:var(--bad); }
+  .opt:disabled{ cursor:default; opacity:.55; }
+  .opt:disabled.correct, .opt:disabled.wrong{ opacity:1; }
+
+  .feedback{
+    text-align:center;
+    min-height:18px;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:.03em;
+    margin:12px 0 4px;
+  }
+  .feedback.ok{ color:var(--ok); }
+  .feedback.bad{ color:var(--bad); }
+
+  .next-btn{
+    display:none;
+    width:100%;
+    margin-top:8px;
+    padding:12px;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:8px;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    letter-spacing:.03em;
+    cursor:pointer;
+  }
+  .next-btn.show{ display:block; }
+  .next-btn:active{ transform:scale(.98); }
+
+  .toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:16px;
+    padding:0 4px;
+  }
+  .stats{
+    display:flex;
+    gap:14px;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .stats b{ color:var(--ink); }
+  .tools{
+    display:flex;
+    gap:8px;
+  }
+  .tool-btn{
+    background:none;
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+    font-size:11px;
+    letter-spacing:.04em;
+    padding:6px 10px;
+    border-radius:6px;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .tool-btn:hover{ color:var(--ink); border-color:var(--ink-soft); }
+
+  .done-panel{ text-align:center; padding:30px 6px; }
+  .done-panel .big{ font-size:42px; margin-bottom:6px; }
+  .done-panel p{ color:var(--ink-soft); font-size:13px; line-height:1.5; }
+
+  @media (max-width:380px){
+    .card{ padding:22px 16px 18px 34px; min-height:400px; }
+    .opt{ font-size:15px; padding:12px 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="masthead">
+    <h1>Der · Die · Das</h1>
+    <span class="sub">150 palabras · DE→ES</span>
+  </div>
+
+  <div class="card" id="card">
+    <div class="card-top">
+      <span>Ficha <b id="cardIndex">1</b> / <span id="cardTotal">150</span></span>
+      <span id="masteredCount">0 dominadas</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div class="word-zone" id="wordZone">
+      <div class="blank-line"></div>
+      <div class="word" id="wordDisplay">Wort</div>
+      <button class="peek-btn" id="peekBtn">ver traducción</button>
+      <div class="translation" id="translation"></div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="options" id="options">
+      <button class="opt der" data-art="der">der</button>
+      <button class="opt die" data-art="die">die</button>
+      <button class="opt das" data-art="das">das</button>
+    </div>
+
+    <button class="next-btn" id="nextBtn">Siguiente ficha →</button>
+  </div>
+
+  <div class="toolbar">
+    <div class="stats">
+      <span>Aciertos: <b id="scoreOk">0</b></span>
+      <span>Fallos: <b id="scoreBad">0</b></span>
+    </div>
+    <div class="tools">
+      <button class="tool-btn" id="shuffleBtn">barajar</button>
+      <button class="tool-btn" id="resetBtn">reiniciar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const WORDS = [
+["Mann","der","hombre"],["Frau","die","mujer"],["Kind","das","niño / niña"],["Junge","der","chico"],
+["Mädchen","das","chica"],["Vater","der","padre"],["Mutter","die","madre"],["Sohn","der","hijo"],
+["Tochter","die","hija"],["Bruder","der","hermano"],["Schwester","die","hermana"],["Familie","die","familia"],
+["Freund","der","amigo"],["Freundin","die","amiga"],["Name","der","nombre"],["Haus","das","casa"],
+["Wohnung","die","piso / apartamento"],["Zimmer","das","habitación"],["Tür","die","puerta"],["Fenster","das","ventana"],
+["Tisch","der","mesa"],["Stuhl","der","silla"],["Bett","das","cama"],["Küche","die","cocina"],
+["Bad","das","baño"],["Garten","der","jardín"],["Straße","die","calle"],["Stadt","die","ciudad"],
+["Land","das","país"],["Welt","die","mundo"],["Tag","der","día"],["Nacht","die","noche"],
+["Woche","die","semana"],["Monat","der","mes"],["Jahr","das","año"],["Zeit","die","tiempo"],
+["Stunde","die","hora"],["Minute","die","minuto"],["Morgen","der","mañana"],["Abend","der","tarde / noche"],
+["Wasser","das","agua"],["Brot","das","pan"],["Milch","die","leche"],["Kaffee","der","café"],
+["Tee","der","té"],["Ei","das","huevo"],["Apfel","der","manzana"],["Suppe","die","sopa"],
+["Fleisch","das","carne"],["Käse","der","queso"],["Zucker","der","azúcar"],["Salz","das","sal"],
+["Essen","das","comida"],["Wein","der","vino"],["Bier","das","cerveza"],["Auto","das","coche"],
+["Bus","der","autobús"],["Zug","der","tren"],["Fahrrad","das","bicicleta"],["Flugzeug","das","avión"],
+["Bahn","die","ferrocarril"],["Weg","der","camino"],["Reise","die","viaje"],["Ticket","das","billete"],
+["Flughafen","der","aeropuerto"],["Bahnhof","der","estación de tren"],["Arbeit","die","trabajo"],["Beruf","der","profesión"],
+["Firma","die","empresa"],["Büro","das","oficina"],["Chef","der","jefe"],["Kollege","der","colega"],
+["Geld","das","dinero"],["Euro","der","euro"],["Bank","die","banco"],["Preis","der","precio"],
+["Rechnung","die","factura / cuenta"],["Geschäft","das","tienda / negocio"],["Laden","der","tienda"],["Markt","der","mercado"],
+["Schule","die","escuela"],["Universität","die","universidad"],["Lehrer","der","profesor"],["Schüler","der","alumno"],
+["Buch","das","libro"],["Sprache","die","idioma"],["Wort","das","palabra"],["Satz","der","frase"],
+["Frage","die","pregunta"],["Antwort","die","respuesta"],["Problem","das","problema"],["Lösung","die","solución"],
+["Idee","die","idea"],["Gedanke","der","pensamiento"],["Meinung","die","opinión"],["Liebe","die","amor"],
+["Leben","das","vida"],["Tod","der","muerte"],["Gesundheit","die","salud"],["Arzt","der","médico"],
+["Krankenhaus","das","hospital"],["Krankheit","die","enfermedad"],["Körper","der","cuerpo"],["Kopf","der","cabeza"],
+["Auge","das","ojo"],["Hand","die","mano"],["Fuß","der","pie"],["Herz","das","corazón"],
+["Luft","die","aire"],["Feuer","das","fuego"],["Erde","die","tierra"],["Himmel","der","cielo"],
+["Sonne","die","sol"],["Mond","der","luna"],["Stern","der","estrella"],["Baum","der","árbol"],
+["Blume","die","flor"],["Tier","das","animal"],["Hund","der","perro"],["Katze","die","gato"],
+["Vogel","der","pájaro"],["Fisch","der","pez"],["Meer","das","mar"],["Berg","der","montaña"],
+["Fluss","der","río"],["Wald","der","bosque"],["Wetter","das","tiempo (clima)"],["Regen","der","lluvia"],
+["Schnee","der","nieve"],["Wind","der","viento"],["Farbe","die","color"],["Bild","das","imagen / foto"],
+["Musik","die","música"],["Film","der","película"],["Spiel","das","juego"],["Sport","der","deporte"],
+["Kunst","die","arte"],["Kultur","die","cultura"],["Nachricht","die","noticia"],["Zeitung","die","periódico"],
+["Computer","der","ordenador"],["Handy","das","móvil"],["Internet","das","internet"],["Regierung","die","gobierno"],
+["Staat","der","estado"],["Gesetz","das","ley"],["Krieg","der","guerra"],["Frieden","der","paz"],
+["Geschichte","die","historia"],["Kirche","die","iglesia"]
+].map(([w,a,es],i)=>({id:i, w, a, es}));
+
+const STORAGE_KEY = 'de-articles-progress-v1';
+let deck = [];
+let pos = 0;
+let mastery = {};      // id -> streak count (2 = dominada)
+let scoreOk = 0, scoreBad = 0;
+let answered = false;
+
+const els = {
+  wordDisplay: document.getElementById('wordDisplay'),
+  translation: document.getElementById('translation'),
+  peekBtn: document.getElementById('peekBtn'),
+  options: document.getElementById('options'),
+  feedback: document.getElementById('feedback'),
+  nextBtn: document.getElementById('nextBtn'),
+  cardIndex: document.getElementById('cardIndex'),
+  cardTotal: document.getElementById('cardTotal'),
+  masteredCount: document.getElementById('masteredCount'),
+  progressFill: document.getElementById('progressFill'),
+  scoreOk: document.getElementById('scoreOk'),
+  scoreBad: document.getElementById('scoreBad'),
+  shuffleBtn: document.getElementById('shuffleBtn'),
+  resetBtn: document.getElementById('resetBtn'),
+  card: document.getElementById('card'),
+};
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+async function loadProgress(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){
+      const data = JSON.parse(res.value);
+      mastery = data.mastery || {};
+      scoreOk = data.scoreOk || 0;
+      scoreBad = data.scoreBad || 0;
+    }
+  }catch(e){
+    // no hay progreso guardado todavía
+    mastery = {};
+  }
+}
+
+async function saveProgress(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify({mastery, scoreOk, scoreBad}), false);
+  }catch(e){
+    console.error('No se pudo guardar el progreso', e);
+  }
+}
+
+function masteredIds(){
+  return Object.keys(mastery).filter(id => mastery[id] >= 2).map(Number);
+}
+
+function buildDeck(){
+  const mIds = new Set(masteredIds());
+  let pending = WORDS.filter(w => !mIds.has(w.id));
+  if(pending.length === 0){
+    pending = WORDS.slice(); // ya se dominó todo: repasar de nuevo
+  }
+  deck = shuffle(pending);
+  pos = 0;
+}
+
+function updateHeader(){
+  els.cardIndex.textContent = Math.min(pos+1, deck.length);
+  els.cardTotal.textContent = WORDS.length;
+  const mCount = masteredIds().length;
+  els.masteredCount.textContent = mCount + ' / ' + WORDS.length + ' dominadas';
+  els.progressFill.style.width = (mCount / WORDS.length * 100) + '%';
+  els.scoreOk.textContent = scoreOk;
+  els.scoreBad.textContent = scoreBad;
+}
+
+function renderCard(){
+  answered = false;
+  els.feedback.textContent = '';
+  els.feedback.className = 'feedback';
+  els.translation.innerHTML = '';
+  els.peekBtn.style.display = 'inline-block';
+  els.nextBtn.classList.remove('show');
+  document.querySelectorAll('.opt').forEach(b=>{
+    b.disabled = false;
+    b.classList.remove('correct','wrong');
+  });
+
+  if(deck.length === 0){
+    showDonePanel();
+    return;
+  }
+
+  const item = deck[pos];
+  els.wordDisplay.textContent = item.w;
+  updateHeader();
+}
+
+function showDonePanel(){
+  els.card.innerHTML = `
+    <div class="done-panel">
+      <div class="big">🎉</div>
+      <h2 style="margin:0 0 6px;font-size:18px;">¡Todas las fichas dominadas!</h2>
+      <p>Has acertado dos veces seguidas cada una de las 150 palabras.<br>Pulsa «reiniciar» abajo si quieres repasarlas desde cero.</p>
+    </div>`;
+}
+
+function handleAnswer(art, btn){
+  if(answered) return;
+  answered = true;
+  const item = deck[pos];
+  const correct = art === item.a;
+
+  document.querySelectorAll('.opt').forEach(b=>{
+    b.disabled = true;
+    if(b.dataset.art === item.a) b.classList.add('correct');
+  });
+
+  if(correct){
+    scoreOk++;
+    els.feedback.textContent = '✓ Correcto';
+    els.feedback.className = 'feedback ok';
+    mastery[item.id] = (mastery[item.id] || 0) + 1;
+  }else{
+    scoreBad++;
+    btn.classList.add('wrong');
+    els.feedback.textContent = '✗ Era "' + item.a + '"';
+    els.feedback.className = 'feedback bad';
+    mastery[item.id] = 0;
+  }
+
+  els.translation.innerHTML = '<b>' + item.a + ' ' + item.w + '</b> — ' + item.es;
+  els.peekBtn.style.display = 'none';
+  els.nextBtn.classList.add('show');
+  updateHeader();
+  saveProgress();
+}
+
+function nextCard(){
+  pos++;
+  if(pos >= deck.length){
+    buildDeck();
+    if(deck.length === 0){ showDonePanel(); return; }
+  }
+  renderCard();
+}
+
+els.options.addEventListener('click', e=>{
+  const btn = e.target.closest('.opt');
+  if(!btn) return;
+  handleAnswer(btn.dataset.art, btn);
+});
+
+els.nextBtn.addEventListener('click', nextCard);
+
+els.peekBtn.addEventListener('click', ()=>{
+  const item = deck[pos];
+  els.translation.innerHTML = item.es;
+});
+
+els.shuffleBtn.addEventListener('click', ()=>{
+  deck = shuffle(deck.slice(pos)).concat([]);
+  pos = 0;
+  renderCard();
+});
+
+els.resetBtn.addEventListener('click', async ()=>{
+  mastery = {};
+  scoreOk = 0;
+  scoreBad = 0;
+  await saveProgress();
+  buildDeck();
+  renderCard();
+});
+
+(async function init(){
+  await loadProgress();
+  buildDeck();
+  renderCard();
+})();
+</script>
+</body>
+</html>
