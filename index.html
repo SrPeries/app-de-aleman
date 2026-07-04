@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
   :root{
     --paper:#efe9dc;
@@ -15,195 +18,99 @@
     --ink-soft:#726b5e;
     --line:#c9c0ab;
     --margin-red:#a83b32;
-    --der:#1f4e8c;
-    --der-soft:#e3ebf5;
-    --die:#a8324a;
-    --die-soft:#f5e3e7;
-    --das:#a9791f;
-    --das-soft:#f5edda;
-    --ok:#2f6b3f;
-    --ok-soft:#dfeee1;
+    --der:#1f4e8c; --der-soft:#e3ebf5;
+    --die:#a8324a; --die-soft:#f5e3e7;
+    --das:#a9791f; --das-soft:#f5edda;
+    --ok:#2f6b3f; --ok-soft:#dfeee1;
     --bad:#a8324a;
   }
   *{box-sizing:border-box;}
   html,body{height:100%;}
   body{
-    margin:0;
-    min-height:100vh;
-    background:
-      radial-gradient(circle at 20% 10%, #f4efe3 0%, var(--paper) 45%),
-      var(--paper);
+    margin:0; min-height:100vh;
+    background: radial-gradient(circle at 20% 10%, #f4efe3 0%, var(--paper) 45%), var(--paper);
     font-family:'Space Grotesk', sans-serif;
     color:var(--ink);
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    display:flex; align-items:center; justify-content:center;
     padding:24px 14px;
   }
+  .app{ width:100%; max-width:460px; }
+  .masthead{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; padding:0 4px; }
+  .masthead h1{ font-size:15px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; margin:0; }
+  .masthead .sub{ font-size:11px; letter-spacing:.08em; color:var(--ink-soft); }
 
-  .app{
-    width:100%;
-    max-width:460px;
-  }
-
-  .masthead{
-    display:flex;
-    align-items:baseline;
-    justify-content:space-between;
-    margin-bottom:14px;
-    padding:0 4px;
-  }
-  .masthead h1{
-    font-size:15px;
-    letter-spacing:.14em;
-    text-transform:uppercase;
-    font-weight:700;
-    margin:0;
-    color:var(--ink);
-  }
-  .masthead .sub{
-    font-size:11px;
-    letter-spacing:.08em;
-    color:var(--ink-soft);
-  }
-
-  /* ---- Index card ---- */
-  .card{
+  .panel{
     position:relative;
-    background:
-      repeating-linear-gradient(
-        var(--paper) 0px,
-        var(--paper) 37px,
-        var(--line) 38px,
-        var(--paper) 39px
-      );
+    background: repeating-linear-gradient(var(--paper) 0px, var(--paper) 37px, var(--line) 38px, var(--paper) 39px);
     background-color:var(--paper);
     border-radius:6px;
-    box-shadow:
-      0 1px 0 rgba(255,255,255,.5) inset,
-      0 18px 40px -18px rgba(43,41,38,.45),
-      0 2px 0 rgba(43,41,38,.08);
+    box-shadow: 0 1px 0 rgba(255,255,255,.5) inset, 0 18px 40px -18px rgba(43,41,38,.45), 0 2px 0 rgba(43,41,38,.08);
     padding:26px 22px 22px 40px;
     overflow:hidden;
     min-height:430px;
-    display:flex;
-    flex-direction:column;
+    display:flex; flex-direction:column;
   }
-  .card::before{ /* red margin rule */
-    content:"";
-    position:absolute;
-    left:26px;
-    top:0;
-    bottom:0;
-    width:2px;
-    background:var(--margin-red);
-    opacity:.55;
-  }
-  .card::after{ /* punch holes */
-    content:"";
-    position:absolute;
-    left:9px;
-    top:0;
-    bottom:0;
-    width:8px;
-    background-image:
-      radial-gradient(circle, var(--paper-dark) 3.5px, transparent 3.6px);
-    background-size:8px 76px;
-    background-repeat:repeat-y;
-    background-position:0 20px;
+  .panel::before{ content:""; position:absolute; left:26px; top:0; bottom:0; width:2px; background:var(--margin-red); opacity:.55; }
+  .panel::after{
+    content:""; position:absolute; left:9px; top:0; bottom:0; width:8px;
+    background-image: radial-gradient(circle, var(--paper-dark) 3.5px, transparent 3.6px);
+    background-size:8px 76px; background-repeat:repeat-y; background-position:0 20px;
     box-shadow: inset 0 0 0 1px rgba(43,41,38,.06);
   }
 
-  .card-top{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    font-size:11px;
-    letter-spacing:.06em;
-    color:var(--ink-soft);
-    margin-bottom:8px;
+  /* ---- Auth screen ---- */
+  #authScreen .auth-body{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:16px; }
+  #authScreen .auth-body h2{ font-family:'Courier Prime',monospace; font-size:22px; margin:0; }
+  #authScreen .auth-body p{ font-size:13px; color:var(--ink-soft); max-width:280px; line-height:1.5; margin:0; }
+  .google-btn{
+    display:flex; align-items:center; gap:10px; justify-content:center;
+    background:#fff; border:1px solid var(--line); border-radius:8px;
+    padding:12px 20px; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14px;
+    color:var(--ink); cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.08);
   }
+  .google-btn svg{ width:18px; height:18px; }
+  .guest-link{ background:none; border:none; color:var(--ink-soft); text-decoration:underline; font-size:12px; cursor:pointer; font-family:inherit; }
+  .auth-status{ font-size:12px; color:var(--ink-soft); min-height:16px; }
+
+  /* ---- Top user bar ---- */
+  .userbar{ display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--ink-soft); margin-bottom:14px; padding:0 4px; }
+  .userbar b{ color:var(--ink); }
+  .userbar button{ background:none; border:1px solid var(--line); color:var(--ink-soft); font-size:11px; padding:4px 9px; border-radius:6px; cursor:pointer; font-family:inherit; }
+
+  /* ---- Menu screen (level select) ---- */
+  #menuScreen .levels{ display:flex; flex-direction:column; gap:12px; margin-top:6px; }
+  .level-card{
+    display:flex; justify-content:space-between; align-items:center;
+    background:rgba(255,255,255,.35); border:2px solid var(--line); border-radius:10px;
+    padding:14px 16px; cursor:pointer; text-align:left;
+    font-family:'Space Grotesk',sans-serif;
+  }
+  .level-card:active{ transform:scale(.98); }
+  .level-card .lname{ font-weight:700; font-size:15px; margin-bottom:2px; }
+  .level-card .lrange{ font-size:11px; color:var(--ink-soft); }
+  .level-card .lprog{ font-family:'Courier Prime',monospace; font-size:13px; font-weight:700; white-space:nowrap; margin-left:10px; }
+  .level-card.muyfacil{ border-color:#4f7942; } .level-card.muyfacil .lprog{ color:#4f7942; }
+  .level-card.facil{ border-color:var(--der); } .level-card.facil .lprog{ color:var(--der); }
+  .level-card.normal{ border-color:var(--das); } .level-card.normal .lprog{ color:var(--das); }
+  .level-card.dificil{ border-color:var(--die); } .level-card.dificil .lprog{ color:var(--die); }
+  #menuScreen h2{ font-family:'Courier Prime',monospace; font-size:18px; margin:2px 0 4px; }
+  #menuScreen .lead{ font-size:12px; color:var(--ink-soft); margin-bottom:4px; }
+
+  /* ---- Card screen ---- */
+  .card-top{ display:flex; justify-content:space-between; align-items:center; font-size:11px; letter-spacing:.06em; color:var(--ink-soft); margin-bottom:8px; }
   .card-top b{ color:var(--ink); }
-
-  .progress-track{
-    height:4px;
-    background:rgba(43,41,38,.12);
-    border-radius:2px;
-    margin-bottom:20px;
-    overflow:hidden;
-  }
-  .progress-fill{
-    height:100%;
-    background:var(--margin-red);
-    width:0%;
-    transition:width .4s ease;
-  }
-
-  .word-zone{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    padding:6px 0 14px;
-  }
-  .blank-line{
-    width:96px;
-    height:2px;
-    background:var(--ink);
-    opacity:.35;
-    margin-bottom:14px;
-  }
-  .word{
-    font-family:'Courier Prime', monospace;
-    font-weight:700;
-    font-size:clamp(30px, 8vw, 40px);
-    letter-spacing:.01em;
-    color:var(--ink);
-    word-break:break-word;
-  }
-  .peek-btn{
-    margin-top:16px;
-    background:none;
-    border:1px dashed var(--ink-soft);
-    color:var(--ink-soft);
-    font-family:inherit;
-    font-size:12px;
-    letter-spacing:.04em;
-    padding:6px 12px;
-    border-radius:20px;
-    cursor:pointer;
-  }
+  .back-btn{ background:none; border:none; color:var(--ink-soft); font-size:11px; cursor:pointer; font-family:inherit; text-decoration:underline; padding:0; }
+  .progress-track{ height:4px; background:rgba(43,41,38,.12); border-radius:2px; margin-bottom:20px; overflow:hidden; }
+  .progress-fill{ height:100%; background:var(--margin-red); width:0%; transition:width .4s ease; }
+  .word-zone{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:6px 0 14px; }
+  .blank-line{ width:96px; height:2px; background:var(--ink); opacity:.35; margin-bottom:14px; }
+  .word{ font-family:'Courier Prime', monospace; font-weight:700; font-size:clamp(30px, 8vw, 40px); color:var(--ink); word-break:break-word; }
+  .peek-btn{ margin-top:16px; background:none; border:1px dashed var(--ink-soft); color:var(--ink-soft); font-family:inherit; font-size:12px; padding:6px 12px; border-radius:20px; cursor:pointer; }
   .peek-btn:hover{ color:var(--ink); border-color:var(--ink); }
-
-  .translation{
-    min-height:20px;
-    font-size:15px;
-    color:var(--ink-soft);
-    margin-top:10px;
-    font-style:italic;
-  }
+  .translation{ min-height:20px; font-size:15px; color:var(--ink-soft); margin-top:10px; font-style:italic; }
   .translation b{ color:var(--ink); font-style:normal; }
-
-  .options{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:10px;
-    margin-top:auto;
-  }
-  .opt{
-    font-family:'Courier Prime', monospace;
-    font-weight:700;
-    font-size:17px;
-    letter-spacing:.03em;
-    text-transform:lowercase;
-    padding:14px 0;
-    border-radius:8px;
-    border:2px solid transparent;
-    cursor:pointer;
-    transition:transform .08s ease, box-shadow .15s ease;
-  }
+  .options{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:auto; }
+  .opt{ font-family:'Courier Prime', monospace; font-weight:700; font-size:17px; text-transform:lowercase; padding:14px 0; border-radius:8px; border:2px solid transparent; cursor:pointer; transition:transform .08s ease; }
   .opt:active{ transform:scale(.96); }
   .opt.der{ background:var(--der-soft); color:var(--der); border-color:var(--der); }
   .opt.die{ background:var(--die-soft); color:var(--die); border-color:var(--die); }
@@ -212,73 +119,27 @@
   .opt.wrong{ background:#f6e2e2; color:var(--bad); border-color:var(--bad); }
   .opt:disabled{ cursor:default; opacity:.55; }
   .opt:disabled.correct, .opt:disabled.wrong{ opacity:1; }
-
-  .feedback{
-    text-align:center;
-    min-height:18px;
-    font-size:13px;
-    font-weight:600;
-    letter-spacing:.03em;
-    margin:12px 0 4px;
-  }
-  .feedback.ok{ color:var(--ok); }
-  .feedback.bad{ color:var(--bad); }
-
-  .next-btn{
-    display:none;
-    width:100%;
-    margin-top:8px;
-    padding:12px;
-    background:var(--ink);
-    color:var(--paper);
-    border:none;
-    border-radius:8px;
-    font-family:'Space Grotesk',sans-serif;
-    font-weight:600;
-    font-size:14px;
-    letter-spacing:.03em;
-    cursor:pointer;
-  }
+  .feedback{ text-align:center; min-height:18px; font-size:13px; font-weight:600; margin:12px 0 4px; }
+  .feedback.ok{ color:var(--ok); } .feedback.bad{ color:var(--bad); }
+  .next-btn{ display:none; width:100%; margin-top:8px; padding:12px; background:var(--ink); color:var(--paper); border:none; border-radius:8px; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14px; cursor:pointer; }
   .next-btn.show{ display:block; }
   .next-btn:active{ transform:scale(.98); }
 
-  .toolbar{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-top:16px;
-    padding:0 4px;
-  }
-  .stats{
-    display:flex;
-    gap:14px;
-    font-size:12px;
-    color:var(--ink-soft);
-  }
+  .toolbar{ display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding:0 4px; }
+  .stats{ display:flex; gap:14px; font-size:12px; color:var(--ink-soft); }
   .stats b{ color:var(--ink); }
-  .tools{
-    display:flex;
-    gap:8px;
-  }
-  .tool-btn{
-    background:none;
-    border:1px solid var(--line);
-    color:var(--ink-soft);
-    font-size:11px;
-    letter-spacing:.04em;
-    padding:6px 10px;
-    border-radius:6px;
-    cursor:pointer;
-    font-family:inherit;
-  }
+  .tools{ display:flex; gap:8px; }
+  .tool-btn{ background:none; border:1px solid var(--line); color:var(--ink-soft); font-size:11px; padding:6px 10px; border-radius:6px; cursor:pointer; font-family:inherit; }
   .tool-btn:hover{ color:var(--ink); border-color:var(--ink-soft); }
 
   .done-panel{ text-align:center; padding:30px 6px; }
   .done-panel .big{ font-size:42px; margin-bottom:6px; }
   .done-panel p{ color:var(--ink-soft); font-size:13px; line-height:1.5; }
 
+  .hidden{ display:none !important; }
+
   @media (max-width:380px){
-    .card{ padding:22px 16px 18px 34px; min-height:400px; }
+    .panel{ padding:22px 16px 18px 34px; min-height:400px; }
     .opt{ font-size:15px; padding:12px 0; }
   }
 </style>
@@ -288,12 +149,39 @@
 <div class="app">
   <div class="masthead">
     <h1>Der · Die · Das</h1>
-    <span class="sub">150 palabras · DE→ES</span>
+    <span class="sub">200 palabras · DE→ES</span>
   </div>
 
-  <div class="card" id="card">
+  <!-- ===== AUTH SCREEN ===== -->
+  <div class="panel" id="authScreen">
+    <div class="auth-body">
+      <h2>Wortschatz</h2>
+      <p>Inicia sesión con Google para llevar tu progreso sincronizado entre el iPhone, el iPad y el ordenador.</p>
+      <button class="google-btn" id="googleBtn">
+        <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6.1 29.6 4 24 4c-7.7 0-14.3 4.4-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.4C29.6 35.4 26.9 36 24 36c-5.3 0-9.7-3.1-11.3-7.6l-6.6 5.1C9.7 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.6 5.4C41.9 35.9 44 30.4 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+        Iniciar sesión con Google
+      </button>
+      <button class="guest-link" id="guestBtn">seguir sin iniciar sesión (progreso solo en este dispositivo)</button>
+      <div class="auth-status" id="authStatus"></div>
+    </div>
+  </div>
+
+  <!-- ===== MENU SCREEN ===== -->
+  <div class="panel hidden" id="menuScreen">
+    <div class="userbar">
+      <span id="userLabel">Invitado</span>
+      <button id="logoutBtn" class="hidden">cerrar sesión</button>
+    </div>
+    <h2>Elige tu nivel</h2>
+    <p class="lead">El progreso de cada palabra se guarda para siempre, aunque cambies de nivel.</p>
+    <div class="levels" id="levels"></div>
+  </div>
+
+  <!-- ===== CARD SCREEN ===== -->
+  <div class="panel hidden" id="cardScreen">
     <div class="card-top">
-      <span>Ficha <b id="cardIndex">1</b> / <span id="cardTotal">150</span></span>
+      <button class="back-btn" id="backBtn">← Menú</button>
+      <span id="levelLabel">Nivel</span>
       <span id="masteredCount">0 dominadas</span>
     </div>
     <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
@@ -316,19 +204,43 @@
     <button class="next-btn" id="nextBtn">Siguiente ficha →</button>
   </div>
 
-  <div class="toolbar">
+  <div class="toolbar hidden" id="toolbar">
     <div class="stats">
       <span>Aciertos: <b id="scoreOk">0</b></span>
       <span>Fallos: <b id="scoreBad">0</b></span>
     </div>
     <div class="tools">
       <button class="tool-btn" id="shuffleBtn">barajar</button>
-      <button class="tool-btn" id="resetBtn">reiniciar</button>
+      <button class="tool-btn" id="resetBtn">reiniciar nivel</button>
     </div>
   </div>
 </div>
 
 <script>
+/* =========================================================
+   1) CONFIGURA AQUÍ TU PROYECTO FIREBASE
+   Sustituye estos valores por los de tu propio proyecto
+   (Firebase console > Configuración del proyecto > tus apps > SDK setup).
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyBK7RtbY5fvSGe4Qp_3VeYFS066LgiMR04",
+  authDomain: "app-de-aleman.firebaseapp.com",
+  projectId: "app-de-aleman",
+  storageBucket: "app-de-aleman.firebasestorage.app",
+  messagingSenderId: "931841003270",
+  appId: "1:931841003270:web:18604080b10fd87bbf9887"
+};
+
+let firebaseReady = false;
+try{
+  firebase.initializeApp(firebaseConfig);
+  firebaseReady = true;
+}catch(e){
+  console.warn('Firebase no está configurado todavía. Rellena firebaseConfig arriba.', e);
+}
+
+/* ========================================================= */
+
 const WORDS = [
 ["Mann","der","hombre"],["Frau","die","mujer"],["Kind","das","niño / niña"],["Junge","der","chico"],
 ["Mädchen","das","chica"],["Vater","der","padre"],["Mutter","die","madre"],["Sohn","der","hijo"],
@@ -342,144 +254,205 @@ const WORDS = [
 ["Stunde","die","hora"],["Minute","die","minuto"],["Morgen","der","mañana"],["Abend","der","tarde / noche"],
 ["Wasser","das","agua"],["Brot","das","pan"],["Milch","die","leche"],["Kaffee","der","café"],
 ["Tee","der","té"],["Ei","das","huevo"],["Apfel","der","manzana"],["Suppe","die","sopa"],
-["Fleisch","das","carne"],["Käse","der","queso"],["Zucker","der","azúcar"],["Salz","das","sal"],
-["Essen","das","comida"],["Wein","der","vino"],["Bier","das","cerveza"],["Auto","das","coche"],
-["Bus","der","autobús"],["Zug","der","tren"],["Fahrrad","das","bicicleta"],["Flugzeug","das","avión"],
-["Bahn","die","ferrocarril"],["Weg","der","camino"],["Reise","die","viaje"],["Ticket","das","billete"],
-["Flughafen","der","aeropuerto"],["Bahnhof","der","estación de tren"],["Arbeit","die","trabajo"],["Beruf","der","profesión"],
-["Firma","die","empresa"],["Büro","das","oficina"],["Chef","der","jefe"],["Kollege","der","colega"],
-["Geld","das","dinero"],["Euro","der","euro"],["Bank","die","banco"],["Preis","der","precio"],
-["Rechnung","die","factura / cuenta"],["Geschäft","das","tienda / negocio"],["Laden","der","tienda"],["Markt","der","mercado"],
-["Schule","die","escuela"],["Universität","die","universidad"],["Lehrer","der","profesor"],["Schüler","der","alumno"],
-["Buch","das","libro"],["Sprache","die","idioma"],["Wort","das","palabra"],["Satz","der","frase"],
-["Frage","die","pregunta"],["Antwort","die","respuesta"],["Problem","das","problema"],["Lösung","die","solución"],
-["Idee","die","idea"],["Gedanke","der","pensamiento"],["Meinung","die","opinión"],["Liebe","die","amor"],
-["Leben","das","vida"],["Tod","der","muerte"],["Gesundheit","die","salud"],["Arzt","der","médico"],
-["Krankenhaus","das","hospital"],["Krankheit","die","enfermedad"],["Körper","der","cuerpo"],["Kopf","der","cabeza"],
-["Auge","das","ojo"],["Hand","die","mano"],["Fuß","der","pie"],["Herz","das","corazón"],
-["Luft","die","aire"],["Feuer","das","fuego"],["Erde","die","tierra"],["Himmel","der","cielo"],
-["Sonne","die","sol"],["Mond","der","luna"],["Stern","der","estrella"],["Baum","der","árbol"],
-["Blume","die","flor"],["Tier","das","animal"],["Hund","der","perro"],["Katze","die","gato"],
-["Vogel","der","pájaro"],["Fisch","der","pez"],["Meer","das","mar"],["Berg","der","montaña"],
-["Fluss","der","río"],["Wald","der","bosque"],["Wetter","das","tiempo (clima)"],["Regen","der","lluvia"],
-["Schnee","der","nieve"],["Wind","der","viento"],["Farbe","die","color"],["Bild","das","imagen / foto"],
-["Musik","die","música"],["Film","der","película"],["Spiel","das","juego"],["Sport","der","deporte"],
-["Kunst","die","arte"],["Kultur","die","cultura"],["Nachricht","die","noticia"],["Zeitung","die","periódico"],
-["Computer","der","ordenador"],["Handy","das","móvil"],["Internet","das","internet"],["Regierung","die","gobierno"],
-["Staat","der","estado"],["Gesetz","das","ley"],["Krieg","der","guerra"],["Frieden","der","paz"],
-["Geschichte","die","historia"],["Kirche","die","iglesia"]
+["Fleisch","das","carne"],["Käse","der","queso"],
+["Zucker","der","azúcar"],["Salz","das","sal"],["Essen","das","comida"],["Wein","der","vino"],
+["Bier","das","cerveza"],["Auto","das","coche"],["Bus","der","autobús"],["Zug","der","tren"],
+["Fahrrad","das","bicicleta"],["Flugzeug","das","avión"],["Bahn","die","ferrocarril"],["Weg","der","camino"],
+["Reise","die","viaje"],["Ticket","das","billete"],["Flughafen","der","aeropuerto"],["Bahnhof","der","estación de tren"],
+["Arbeit","die","trabajo"],["Beruf","der","profesión"],["Firma","die","empresa"],["Büro","das","oficina"],
+["Chef","der","jefe"],["Kollege","der","colega"],["Geld","das","dinero"],["Euro","der","euro"],
+["Bank","die","banco"],["Preis","der","precio"],["Rechnung","die","factura / cuenta"],["Geschäft","das","tienda / negocio"],
+["Laden","der","tienda"],["Markt","der","mercado"],["Schule","die","escuela"],["Universität","die","universidad"],
+["Lehrer","der","profesor"],["Schüler","der","alumno"],["Buch","das","libro"],["Sprache","die","idioma"],
+["Wort","das","palabra"],["Satz","der","frase"],["Frage","die","pregunta"],["Antwort","die","respuesta"],
+["Problem","das","problema"],["Lösung","die","solución"],["Idee","die","idea"],["Gedanke","der","pensamiento"],
+["Meinung","die","opinión"],["Liebe","die","amor"],["Leben","das","vida"],["Tod","der","muerte"],
+["Gesundheit","die","salud"],["Arzt","der","médico"],["Krankenhaus","das","hospital"],["Krankheit","die","enfermedad"],
+["Körper","der","cuerpo"],["Kopf","der","cabeza"],["Auge","das","ojo"],["Hand","die","mano"],
+["Fuß","der","pie"],["Herz","das","corazón"],["Luft","die","aire"],["Feuer","das","fuego"],
+["Erde","die","tierra"],["Himmel","der","cielo"],["Sonne","die","sol"],["Mond","der","luna"],
+["Stern","der","estrella"],["Baum","der","árbol"],["Blume","die","flor"],["Tier","das","animal"],
+["Hund","der","perro"],["Katze","die","gato"],["Vogel","der","pájaro"],["Fisch","der","pez"],
+["Meer","das","mar"],["Berg","der","montaña"],["Fluss","der","río"],["Wald","der","bosque"],
+["Wetter","das","tiempo (clima)"],["Regen","der","lluvia"],["Schnee","der","nieve"],["Wind","der","viento"],
+["Farbe","die","color"],["Bild","das","imagen / foto"],["Musik","die","música"],["Film","der","película"],
+["Spiel","das","juego"],["Sport","der","deporte"],["Kunst","die","arte"],["Kultur","die","cultura"],
+["Nachricht","die","noticia"],["Zeitung","die","periódico"],["Computer","der","ordenador"],["Handy","das","móvil"],
+["Internet","das","internet"],["Regierung","die","gobierno"],["Staat","der","estado"],["Gesetz","das","ley"],
+["Krieg","der","guerra"],["Frieden","der","paz"],["Geschichte","die","historia"],["Kirche","die","iglesia"],
+["Plan","der","plan"],["Regel","die","regla"],["Grund","der","motivo / razón"],["Art","die","tipo / manera"],
+["Teil","der","parte"],["Seite","die","página / lado"],["Punkt","der","punto"],["Fall","der","caso"],
+["Sache","die","cosa / asunto"],["Ding","das","cosa (objeto)"],["Moment","der","momento"],["Anfang","der","comienzo"],
+["Ende","das","final"],["Richtung","die","dirección"],["Platz","der","plaza / sitio"],["Ecke","die","esquina"],
+["Kreis","der","círculo"],["Zeichen","das","señal"],["Kraft","die","fuerza"],["Macht","die","poder"],
+["Sinn","der","sentido"],["Hilfe","die","ayuda"],["Rat","der","consejo"],["Wahl","die","elección"],
+["Entscheidung","die","decisión"],["Erfolg","der","éxito"],["Fehler","der","error"],["Aufgabe","die","tarea"],
+["Ziel","das","objetivo"],["Traum","der","sueño"],["Hoffnung","die","esperanza"],["Angst","die","miedo"],
+["Mut","der","valentía"],["Freude","die","alegría"],["Schmerz","der","dolor"],["Ruhe","die","calma"],
+["Streit","der","discusión / pelea"],["Wahrheit","die","verdad"],["Lüge","die","mentira"],["Geheimnis","das","secreto"],
+["Erinnerung","die","recuerdo"],["Erfahrung","die","experiencia"],["Beispiel","das","ejemplo"],["Unterschied","der","diferencia"],
+["Verantwortung","die","responsabilidad"],["Sicherheit","die","seguridad"],["Freiheit","die","libertad"],["Gerechtigkeit","die","justicia"],
+["Zukunft","die","futuro"],["Vergangenheit","die","pasado"]
 ].map(([w,a,es],i)=>({id:i, w, a, es}));
 
-const STORAGE_KEY = 'de-articles-progress-v1';
+const LEVELS = [
+  {key:'muyfacil', label:'Muy fácil', desc:'las 50 palabras más usadas', from:0, to:50},
+  {key:'facil', label:'Fácil', desc:'palabras 51–100 por frecuencia', from:50, to:100},
+  {key:'normal', label:'Normal', desc:'palabras 101–150 por frecuencia', from:100, to:150},
+  {key:'dificil', label:'Difícil', desc:'palabras 151–200 por frecuencia', from:150, to:200},
+];
+
+const LOCAL_KEY = 'de-articles-progress-guest-v1';
+
+let currentUser = null;      // firebase user o null (invitado)
+let mastery = {};            // id -> streak (2 = dominada), abarca las 200 palabras
+let scoreOk = 0, scoreBad = 0;
+let currentLevel = null;
 let deck = [];
 let pos = 0;
-let mastery = {};      // id -> streak count (2 = dominada)
-let scoreOk = 0, scoreBad = 0;
 let answered = false;
 
+const $ = id => document.getElementById(id);
 const els = {
-  wordDisplay: document.getElementById('wordDisplay'),
-  translation: document.getElementById('translation'),
-  peekBtn: document.getElementById('peekBtn'),
-  options: document.getElementById('options'),
-  feedback: document.getElementById('feedback'),
-  nextBtn: document.getElementById('nextBtn'),
-  cardIndex: document.getElementById('cardIndex'),
-  cardTotal: document.getElementById('cardTotal'),
-  masteredCount: document.getElementById('masteredCount'),
-  progressFill: document.getElementById('progressFill'),
-  scoreOk: document.getElementById('scoreOk'),
-  scoreBad: document.getElementById('scoreBad'),
-  shuffleBtn: document.getElementById('shuffleBtn'),
-  resetBtn: document.getElementById('resetBtn'),
-  card: document.getElementById('card'),
+  authScreen: $('authScreen'), menuScreen: $('menuScreen'), cardScreen: $('cardScreen'), toolbar: $('toolbar'),
+  googleBtn: $('googleBtn'), guestBtn: $('guestBtn'), authStatus: $('authStatus'),
+  userLabel: $('userLabel'), logoutBtn: $('logoutBtn'), levels: $('levels'),
+  backBtn: $('backBtn'), levelLabel: $('levelLabel'), masteredCount: $('masteredCount'),
+  progressFill: $('progressFill'), wordDisplay: $('wordDisplay'), translation: $('translation'),
+  peekBtn: $('peekBtn'), options: $('options'), feedback: $('feedback'), nextBtn: $('nextBtn'),
+  scoreOk: $('scoreOk'), scoreBad: $('scoreBad'), shuffleBtn: $('shuffleBtn'), resetBtn: $('resetBtn'),
+  cardScreenPanel: $('cardScreen'),
 };
+
+function showScreen(name){
+  els.authScreen.classList.toggle('hidden', name!=='auth');
+  els.menuScreen.classList.toggle('hidden', name!=='menu');
+  els.cardScreen.classList.toggle('hidden', name!=='card');
+  els.toolbar.classList.toggle('hidden', name!=='card');
+}
 
 function shuffle(arr){
   const a = arr.slice();
-  for(let i=a.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [a[i],a[j]] = [a[j],a[i]];
-  }
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
   return a;
 }
 
+/* ---------- Persistencia ---------- */
 async function loadProgress(){
-  try{
-    const res = await window.storage.get(STORAGE_KEY, false);
-    if(res && res.value){
-      const data = JSON.parse(res.value);
-      mastery = data.mastery || {};
-      scoreOk = data.scoreOk || 0;
-      scoreBad = data.scoreBad || 0;
+  if(currentUser && firebaseReady){
+    try{
+      const doc = await firebase.firestore().collection('users').doc(currentUser.uid).get();
+      if(doc.exists){
+        const data = doc.data();
+        mastery = data.mastery || {};
+        scoreOk = data.scoreOk || 0;
+        scoreBad = data.scoreBad || 0;
+      }else{
+        mastery = {}; scoreOk = 0; scoreBad = 0;
+      }
+    }catch(e){
+      console.error('No se pudo leer Firestore, uso progreso vacío', e);
+      mastery = {};
     }
-  }catch(e){
-    // no hay progreso guardado todavía
-    mastery = {};
+  }else{
+    try{
+      const raw = localStorage.getItem(LOCAL_KEY);
+      const data = raw ? JSON.parse(raw) : null;
+      mastery = data?.mastery || {};
+      scoreOk = data?.scoreOk || 0;
+      scoreBad = data?.scoreBad || 0;
+    }catch(e){ mastery = {}; }
   }
 }
 
 async function saveProgress(){
-  try{
-    await window.storage.set(STORAGE_KEY, JSON.stringify({mastery, scoreOk, scoreBad}), false);
-  }catch(e){
-    console.error('No se pudo guardar el progreso', e);
+  if(currentUser && firebaseReady){
+    try{
+      await firebase.firestore().collection('users').doc(currentUser.uid).set({
+        mastery, scoreOk, scoreBad, updatedAt: Date.now()
+      }, {merge:true});
+    }catch(e){ console.error('No se pudo guardar en Firestore', e); }
+  }else{
+    try{ localStorage.setItem(LOCAL_KEY, JSON.stringify({mastery, scoreOk, scoreBad})); }
+    catch(e){ console.error('No se pudo guardar localmente', e); }
   }
 }
 
-function masteredIds(){
-  return Object.keys(mastery).filter(id => mastery[id] >= 2).map(Number);
+/* ---------- Menú de niveles ---------- */
+function levelWords(level){ return WORDS.slice(level.from, level.to); }
+function masteredInLevel(level){
+  return levelWords(level).filter(w => (mastery[w.id]||0) >= 2).length;
 }
 
+function renderMenu(){
+  els.userLabel.textContent = currentUser ? (currentUser.displayName || currentUser.email) : 'Invitado (progreso solo en este dispositivo)';
+  els.logoutBtn.classList.toggle('hidden', !currentUser);
+  els.levels.innerHTML = '';
+  LEVELS.forEach(level=>{
+    const m = masteredInLevel(level);
+    const total = level.to - level.from;
+    const btn = document.createElement('button');
+    btn.className = 'level-card ' + level.key;
+    btn.innerHTML = `
+      <div>
+        <div class="lname">${level.label}</div>
+        <div class="lrange">${level.desc}</div>
+      </div>
+      <div class="lprog">${m}/${total}</div>`;
+    btn.addEventListener('click', ()=> startLevel(level));
+    els.levels.appendChild(btn);
+  });
+  showScreen('menu');
+}
+
+function startLevel(level){
+  currentLevel = level;
+  buildDeck();
+  els.levelLabel.textContent = level.label;
+  showScreen('card');
+  renderCard();
+}
+
+/* ---------- Mazo de fichas ---------- */
 function buildDeck(){
-  const mIds = new Set(masteredIds());
-  let pending = WORDS.filter(w => !mIds.has(w.id));
-  if(pending.length === 0){
-    pending = WORDS.slice(); // ya se dominó todo: repasar de nuevo
-  }
+  const words = levelWords(currentLevel);
+  let pending = words.filter(w => (mastery[w.id]||0) < 2);
+  if(pending.length === 0) pending = words.slice();
   deck = shuffle(pending);
   pos = 0;
 }
 
 function updateHeader(){
-  els.cardIndex.textContent = Math.min(pos+1, deck.length);
-  els.cardTotal.textContent = WORDS.length;
-  const mCount = masteredIds().length;
-  els.masteredCount.textContent = mCount + ' / ' + WORDS.length + ' dominadas';
-  els.progressFill.style.width = (mCount / WORDS.length * 100) + '%';
+  const m = masteredInLevel(currentLevel);
+  const total = currentLevel.to - currentLevel.from;
+  els.masteredCount.textContent = m + ' / ' + total + ' dominadas';
+  els.progressFill.style.width = (m/total*100) + '%';
   els.scoreOk.textContent = scoreOk;
   els.scoreBad.textContent = scoreBad;
 }
 
 function renderCard(){
   answered = false;
-  els.feedback.textContent = '';
-  els.feedback.className = 'feedback';
+  els.feedback.textContent = ''; els.feedback.className = 'feedback';
   els.translation.innerHTML = '';
   els.peekBtn.style.display = 'inline-block';
   els.nextBtn.classList.remove('show');
-  document.querySelectorAll('.opt').forEach(b=>{
-    b.disabled = false;
-    b.classList.remove('correct','wrong');
-  });
+  document.querySelectorAll('.opt').forEach(b=>{ b.disabled=false; b.classList.remove('correct','wrong'); });
 
-  if(deck.length === 0){
-    showDonePanel();
-    return;
-  }
-
-  const item = deck[pos];
-  els.wordDisplay.textContent = item.w;
+  if(deck.length === 0){ showDonePanel(); return; }
+  els.wordDisplay.textContent = deck[pos].w;
   updateHeader();
 }
 
 function showDonePanel(){
-  els.card.innerHTML = `
+  els.cardScreenPanel.innerHTML = `
     <div class="done-panel">
       <div class="big">🎉</div>
-      <h2 style="margin:0 0 6px;font-size:18px;">¡Todas las fichas dominadas!</h2>
-      <p>Has acertado dos veces seguidas cada una de las 150 palabras.<br>Pulsa «reiniciar» abajo si quieres repasarlas desde cero.</p>
+      <h2 style="margin:0 0 6px;font-size:18px;">¡Nivel «${currentLevel.label}» dominado!</h2>
+      <p>Has acertado dos veces seguidas cada palabra de este nivel.</p>
+      <button class="tool-btn" id="backToMenuDone" style="margin-top:14px;">← Volver al menú</button>
     </div>`;
+  $('backToMenuDone').addEventListener('click', renderMenu);
 }
 
 function handleAnswer(art, btn){
@@ -497,7 +470,7 @@ function handleAnswer(art, btn){
     scoreOk++;
     els.feedback.textContent = '✓ Correcto';
     els.feedback.className = 'feedback ok';
-    mastery[item.id] = (mastery[item.id] || 0) + 1;
+    mastery[item.id] = (mastery[item.id]||0) + 1;
   }else{
     scoreBad++;
     btn.classList.add('wrong');
@@ -515,45 +488,66 @@ function handleAnswer(art, btn){
 
 function nextCard(){
   pos++;
-  if(pos >= deck.length){
-    buildDeck();
-    if(deck.length === 0){ showDonePanel(); return; }
-  }
+  if(pos >= deck.length){ buildDeck(); if(deck.length===0){ showDonePanel(); return; } }
   renderCard();
 }
 
+/* ---------- Eventos ---------- */
 els.options.addEventListener('click', e=>{
   const btn = e.target.closest('.opt');
-  if(!btn) return;
-  handleAnswer(btn.dataset.art, btn);
+  if(btn) handleAnswer(btn.dataset.art, btn);
 });
-
 els.nextBtn.addEventListener('click', nextCard);
-
-els.peekBtn.addEventListener('click', ()=>{
-  const item = deck[pos];
-  els.translation.innerHTML = item.es;
-});
-
-els.shuffleBtn.addEventListener('click', ()=>{
-  deck = shuffle(deck.slice(pos)).concat([]);
-  pos = 0;
-  renderCard();
-});
-
+els.peekBtn.addEventListener('click', ()=>{ els.translation.innerHTML = deck[pos].es; });
+els.shuffleBtn.addEventListener('click', ()=>{ deck = shuffle(deck.slice(pos)); pos = 0; renderCard(); });
 els.resetBtn.addEventListener('click', async ()=>{
-  mastery = {};
-  scoreOk = 0;
-  scoreBad = 0;
+  levelWords(currentLevel).forEach(w => delete mastery[w.id]);
   await saveProgress();
   buildDeck();
   renderCard();
 });
+els.backBtn.addEventListener('click', renderMenu);
 
-(async function init(){
+els.guestBtn.addEventListener('click', async ()=>{
+  currentUser = null;
   await loadProgress();
-  buildDeck();
-  renderCard();
+  renderMenu();
+});
+
+els.googleBtn.addEventListener('click', async ()=>{
+  if(!firebaseReady){
+    els.authStatus.textContent = 'Falta configurar firebaseConfig en el código antes de poder iniciar sesión.';
+    return;
+  }
+  try{
+    els.authStatus.textContent = 'Abriendo ventana de Google…';
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await firebase.auth().signInWithPopup(provider);
+  }catch(e){
+    console.error(e);
+    els.authStatus.textContent = 'No se pudo iniciar sesión: ' + e.message;
+  }
+});
+
+els.logoutBtn.addEventListener('click', async ()=>{
+  if(firebaseReady) await firebase.auth().signOut();
+  currentUser = null;
+  showScreen('auth');
+});
+
+/* ---------- Arranque ---------- */
+(async function init(){
+  if(firebaseReady){
+    firebase.auth().onAuthStateChanged(async (user)=>{
+      currentUser = user;
+      if(user){
+        await loadProgress();
+        renderMenu();
+      }
+      // si no hay usuario, se queda en la pantalla de auth hasta que pulse algo
+    });
+  }
+  showScreen('auth');
 })();
 </script>
 </body>
